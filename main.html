@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Boxsand forum</title>
+        <link rel="stylesheet" href="public/style.css">
+    </head>
+    <body>
+        <div class="section1">
+            <h1>Ze Boxsand forum</h1>
+            <button id="signup-button">Sign Up</button><br>
+            <p>Already have an account?</p><br>
+            <button id="login-button">Log In</button><br>
+            Signed in as <span id="loggedinas2">you r not logd in</span>
+            <form action="/" method="POST"><button type="submit">Refresh</button></form>
+        </div>
+        <div class="section1">
+            <h2>POSTS</h2>
+            <div id="posts" class="section2">
+                <%- posts %><!-- This will be replaced with server-side code to render posts dynamically -->
+            </div>
+            <h2>UPDATE REQUESTS</h2>
+            <div id="requests" class="section2">
+                <%- reqs %>
+            </div>
+            <span id="loggedinas" style="display:none"><%- username %></span>
+        </div>
+        <div class="section1" id="postsection">
+            <h2>Post</h2>
+            <form id="post-form" action="/posted.html" method="POST">
+                <input name="name" type="text" id="name" placeholder="Title" required><br>
+                <input name="file" type="file" id="file"><br>
+                <input name="filename" type="text" value="save"><br>
+                <textarea id="post-content" name="data" rows="4" cols="50" placeholder="Write your post here..."></textarea><br>
+                
+                <label for="post-content">Preview</label><br>
+                <div id="post-preview" class="section2">Your post will appear here...</div><br><!--
+                <label for="options">Options</label><br>
+                <div id="options">
+                    <button class="pbtn">Upload</button>
+                    <button class="pbtn">Header</button>
+                    <button class="pbtn">Bold</button>
+                    <button class="pbtn">Italic</button>
+                    <button class="pbtn">Underline</button>
+                    <button class="pbtn">List</button>
+                </div><br>
+                -->
+                <button type="submit" id="post-button">Send</button>
+                <input name="fileh" type="text" id="filehidden" style="display:none">
+            </form>
+            <form action="/endsession.html" method="POST"><button type="submit">End session</button></form>
+        </div>
+        <button id="nreqbtn">Request update</button>
+        <script>
+            const loggedIn = document.getElementById('loggedinas').innerText !== "nobody" // Check if user is logged in
+            function textToHTML(text) {
+                return text.replace(/(?:\r\n|\r|\n)/g, '<br>');
+            }
+            document.getElementById('loggedinas2').innerText = document.getElementById('loggedinas').innerText; // Update logged in user display
+            document.getElementById('signup-button').addEventListener('click', function() {
+                window.location.href = 'public/signup.html'; // Redirect to signup page
+            });
+
+            document.getElementById('login-button').addEventListener('click', function() {
+                window.location.href = 'public/login.html'; // Redirect to login page
+            });
+            document.getElementById('post-content').addEventListener('change', function() {
+                const text = document.getElementById("post-content").value
+                const title = document.getElementById("name").value
+                const file = document.getElementById("file").value
+                const filename = document.getElementById("filename").value
+                const user = document.getElementById('loggedinas').innerText
+                document.getElementById('post-preview').innerHTML = 
+                `
+                <h3>${title}</h3>
+                <p>By ${user}</p><br>
+                <p>By ${user}</p><br>
+                <p>${textToHTML(text)}</p>
+                ${
+                    file.length ? `<br><a download="${filename}.psave" href="data:text/base64,">Download ${filename}</a>`: ``
+                }`
+            });
+            document.getElementById('file').addEventListener("change", function(){
+
+                const fr = new FileReader()
+                fr.onload = function(){
+                    document.getElementById("filehidden").value = fr.result
+                }
+                fr.readAsText(document.getElementById("file").files[0])
+            })
+            document.getElementById('nreqbtn').style.display = !loggedIn ? "none" : "block"
+            document.getElementById('postsection').style.display = !loggedIn ? "none" : "block"
+            const url = new URL(window.location.href);
+            const post = url.searchParams.get("post");
+            if (post){
+                document.body.innerHTML = document.getElementById("post#"+post).innerHTML
+            }
+            const posts = document.querySelectorAll(".post")
+            posts.forEach(p => {
+                p.addEventListener("click", function(){
+                    const postId = p.id.split("#")[1]
+                    window.location.href = `/?post=${postId}`
+                })
+            })
+        </script>
+    </body>
+</html>

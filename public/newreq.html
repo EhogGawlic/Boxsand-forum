@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Request feature</title>
+        <style rel="stylesheet" href="style.css"></style>
+    </head>
+    <body>
+        <div class="section1" style="display:block" id="requestdiv">
+            <h2>REQUEST UPDATE</h2>
+            <form id="req-form" action="/req.html" method="POST">
+                <input name="title" type="text" placeholder="Title" required><br>
+                <textarea name="text" rows="4" cols="50" placeholder="Type in request here" required></textarea><br>
+                <button type="submit">Submit</button>
+            </form>
+            <span id="lastreq" style="display:none"><%- lastreq %></span>
+        </div>
+        <script>
+            if (parseFloat(document.getElementById("lastreq").innerHTML) >= new Date().getTime()-3600000*36){
+                document.getElementById("requestdiv").style.display="none"
+            }
+        </script>
+    </body>
+</html>
