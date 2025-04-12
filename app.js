@@ -1,12 +1,13 @@
 const express = require('express')
 const bcrypt = require('bcrypt')
-const serverless = require("serverless-http")
-const router = express.Router()
+//const serverless = require("serverless-http")
+//const router = express.Router()
 const jwt = require('jsonwebtoken')
 const bodyParser = require('body-parser')
 const ejs = require('ejs')
 const app = express()
 const { MongoClient } = require('mongodb');
+const { get } = require('mongodb/lib/utils')
 const uri = process.env.PASSWORD;
 let lastadded = 0
 let token
@@ -122,11 +123,12 @@ async function getAllData2(res) {
 			const requests = await requestscoll.find({}).toArray()
 			let data = ``
 			let rdata = ``
+			let pnum = 0
 			things.forEach(thing => {
 				data += `
-					<div class="post">
+					<div class="post" id="post#${pnum}">
 						<h3>${thing.title}</h3>
-						<p>By ${thing.user}</p><br>
+							<p>By ${thing.user}</p><br>
 						<p>${thing.data}</p>
 						${
 							thing.hasFile ? 
@@ -135,6 +137,7 @@ async function getAllData2(res) {
 						}
 					</div>
 				`
+				pnum++
 			});
 			let rn = 0
 			requests.forEach(req =>{
@@ -251,6 +254,35 @@ app.post('/gyat2.html', (req, res) => {
 		}
 	})
 })
+app.post('/delete.html', (req, res) => {
+	getToken(async(user)=>{
+		const db = client.db('boxsand')
+		const accounts = db.collection('accounts')
+		const account = await accounts.findOne({username: user})
+		if (account){
+			const coll = db.collection('boxsandposts')
+			const posts = await coll.find({}).toArray()
+			if (posts[parseInt(req.body.postn)].user===user || account.status===5){
+				const deleted = await coll.deleteOne({title: posts[parseInt(req.body.postn)].title})
+				res.render("public/delete.html", {
+					title: "Deleted!.",
+					message: `Your post has been deleted.`,
+				})
+			} else {
+				res.render("public/delete.html", {
+					title: "You do not have the right to delete this post.",
+					message: `If you are not logged in, please log in to delete your post.
+					If this is not your post, you cannot delete it.`,
+				})
+			}
+		} else {
+			res.render("public/delete.html", {
+				title: "You are not logged in.",
+				message: `Please log in to delete your post, if this is yours.`,
+			})
+		}
+	})
+})
 app.post('/', async(req,res)=>{
 	
 	getAllData2(res).catch(console.error)
@@ -288,14 +320,14 @@ app.post("/gyat.html", async(req, res) => {
 })
 app.post('/endsession.html', (req, res)=>{
 	res.send("Session ended.")
-})/*
+})
 app.listen(3000, (err)=>{
 	if (err) throw err
 	console.log("Connected!")
 })
-*/
+/*
 router.get("/", (req, res) => {
     getAllData2(res).catch(console.error)
 });
 app.use("/.netlify/functions/app", router);
-module.exports.handler = serverless(app);
+module.exports.handler = serverless(app);*/
