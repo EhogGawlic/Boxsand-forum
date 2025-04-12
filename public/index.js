@@ -18,7 +18,7 @@ const loginButton = document.getElementById('login-button');
 
 if (signupButton) {
     signupButton.addEventListener('click', function() {
-        window.location.href = 'signup.html';
+        window.location.href = 'signup';
     });
 } else {
     console.error('Signup button not found');
@@ -26,7 +26,7 @@ if (signupButton) {
 
 if (loginButton) {
     loginButton.addEventListener('click', function() {
-        window.location.href = 'login.html';
+        window.location.href = 'login';
     });
 } else {
     console.error('Login button not found');
