@@ -26,23 +26,26 @@ async function initMongo(){
 	}
 }
 initMongo().catch(console.error)
-async function addData(data, cname, file, filename){
+async function addData(data, cname, file, filename, res){
+	const db = client.db('boxsand');
+	const collection = db.collection('boxsandposts');
+	const match = await collection.findOne({title: cname})
+	if (match){
+		res.send("Post with this name already exists. Please choose a different name.")
+		return
+	}
 	if (token){
 		getToken(async(user) => {
-			const db = client.db('boxsand');
-			const collection = db.collection('boxsandposts');
 			const inserted = await collection.insertOne({
 				title: cname,
 				data: data,
 				hasFile: file !== "NOFILE",
 				file: file,
 				filename: filename,
-				user
+				user:user.username
 			})
 		})
 	} else {
-		const db = client.db('boxsand');
-		const collection = db.collection('boxsandposts');
 		const inserted = await collection.insertOne({
 			title: cname,
 			data: data,
@@ -52,6 +55,7 @@ async function addData(data, cname, file, filename){
 			user: "somebody unidentified"
 		})
 	}
+	res.render("public/posted.html")
 }
 async function reqFeat(data, title){
 	getToken(async(user)=>{
@@ -162,7 +166,7 @@ async function getAllData2(res) {
 				posts: data,
 				reqs: rdata,
 				//lastreq: lastadded,
-				username: user
+				username: user.username
 			})
 		})
 	} else {
@@ -217,7 +221,7 @@ async function closeMongo(){await client.close()}
 function getToken(next){
 	jwt.verify(token, process.env.SECRET, (err, user) => {
 		if (err) throw err
-		next(user.username)
+		next(user)
 	})
 }
 getAllData("nobody").catch(console.error);
@@ -236,9 +240,9 @@ app.post('/posted.html', (req, res) => {
 	const name = req.body.name
 	const filedta = req.body.fileh || "NOFILE"
 	const filename = req.body.filename
-	addData(data, name, filedta, filename)
-	res.render("public/posted.html")
+	addData(data, name, filedta, filename, res)
 });
+//signup
 app.post('/gyat2.html', (req, res) => {
 	const db = client.db('boxsand');
 	const coll = db.collection('accounts')
@@ -252,7 +256,8 @@ app.post('/gyat2.html', (req, res) => {
 			const newuser = await coll.insertOne({
 				username: req.body.username,
 				password:hash,
-				status: 0 // 0  for average person, 1 for long time user, 5 for dev
+				status: 0, // 0  for average person, 1 for long time user, 5 for dev
+				banned: false
 			})
 			getAllData2(res).catch(console.error)
 		}
@@ -298,27 +303,29 @@ app.post('/req.html', (req, res) => {
 	reqFeat(text, title)
 	getAllData2(res).catch(console.error)
 })
+//login
 app.post("/gyat.html", async(req, res) => {
+	
 	const db = client.db('boxsand');
 	const coll = db.collection('accounts')
-	console.log("yipee")
 	const user = await coll.findOne({username: req.body.username})
 	if (!user){
-		console.log(193)
 		getAllData2(res).catch(console.error)
 	} else {
-		console.log("User found: ", user.username)
+		if (user.banned){
+			res.send("Did you know you are banned?<br>Reason: "+user.banned)
+			return
+		}
 		const match = await bcrypt.compare(req.body.password, user.password)
 		console.log(match)
 		if (match){
 			token = jwt.sign(
-				{username: user.username}, process.env.SECRET, {
+				{username: user.username, status: user.status}, process.env.SECRET, {
 					expiresIn: '1800s',
 				}
 			)
 			getAllData2(res).catch(console.error)
 		} else {
-			console.log("gyatttttt")
 			getAllData2(res).catch(console.error)
 		}
 	}
@@ -326,12 +333,38 @@ app.post("/gyat.html", async(req, res) => {
 app.post('/endsession.html', (req, res)=>{
 	res.send("Session ended.")
 })
+app.post('/ban', (req, res)=>{
+	getToken(async(usser)=>{
+		console.log(usser)
+		if (usser.status===5){
+			const db = client.db('boxsand')
+			const accounts = db.collection('accounts')
+			accounts.findOne({username: req.body.username}).then(async(err, user)=>{
 
+				if (err) throw err
+				if (user){
+					let userdoc = user
+					//userdoc.banned = req.body.reason
+					//const updated = accounts.updateOne({username: req.body.username}, {$set: userdoc}, {upsert: false})
+					//res.send("User deleted.")
+				} else {
+					res.send("User not found.")
+				}
+			})
+		} else {
+			res.send("narr")
+		}
+	})
+})
 app.get('/login', (req, res)=>{
 	res.render("login.html")
 })
 app.get('/signup', (req, res)=>{
 	res.render("signup.html")
+})
+app.get('/banuser', async (req, res)=>{
+	const file = await fs.readFile("./banuser.html")
+	res.send(file.toString())
 })
 const port = 3000//process.env.PORT||3000
 app.get('/rules', async(req, res)=>{
