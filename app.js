@@ -8,6 +8,7 @@ const ejs = require('ejs')
 const app = express()
 const { MongoClient } = require('mongodb');
 const { get } = require('mongodb/lib/utils')
+const fs = require('fs').promises
 const dotenv = require('dotenv')
 dotenv.config()
 const uri = process.env.PASSWORD;
@@ -202,7 +203,7 @@ async function getAllData2(res) {
 			rn++
 		})
 		
-		res.redirect('/').render("main.html", {
+		res.render("main.html", {
 			posts: data,
 			reqs: rdata,
 			//lastreq: lastadded,
@@ -332,7 +333,14 @@ app.get('/login', (req, res)=>{
 app.get('/signup', (req, res)=>{
 	res.render("signup.html")
 })
-app.listen(process.env.PORT, (err)=>{
+const port = 3000//process.env.PORT||3000
+app.get('/rules', async(req, res)=>{
+	const rules = await fs.readFile("./rules.html")
+
+	res.send(rules.toString())
+})
+
+app.listen(port, (err)=>{
 	if (err) throw err
 	console.log("Connected!")
 })
