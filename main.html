@@ -15,7 +15,7 @@
             Signed in as <span id="loggedinas2">you r not logd in</span>
             <form action="/" method="POST"><button type="submit">Refresh</button></form>
         </div>
-        <div class="section1">
+        <div class="section1" id="psec">
             <h2>POSTS</h2>
             <div id="posts" class="section2">
                 <%- posts %><!-- This will be replaced with server-side code to render posts dynamically -->
@@ -29,12 +29,16 @@
         <div class="section1" id="postsection">
             <h2>Post</h2>
             <form id="post-form" action="/posted.html" method="POST">
+                <label for="name">Title</label><br>
                 <input name="name" type="text" id="name" placeholder="Title" required><br>
+                <label for="file">File (optional)</label><br>
                 <input name="file" type="file" id="file"><br>
+                <label for="filename">File name (optional)</label><br>
                 <input name="filename" type="text" value="save" id="filename"><br>
+                <label for="post-content">Content</label><br>
                 <textarea id="post-content" name="data" rows="4" cols="50" placeholder="Write your post here..."></textarea><br>
                 
-                <label for="post-content">Preview</label><br>
+                <label for="post-preview">Preview</label><br>
                 <div id="post-preview" class="section2">Your post will appear here...</div><br><!--
                 <label for="options">Options</label><br>
                 <div id="options">
@@ -47,10 +51,13 @@
                 </div><br>
                 -->
                 <button type="submit" id="post-button">Send</button>
+                <label for="filehidden" style="display:none"></label>
                 <input name="fileh" type="text" id="filehidden" style="display:none">
             </form>
             <form action="/endsession.html" method="POST"><button type="submit">End session</button></form>
         </div>
         <button id="nreqbtn">Request update</button>
+        <script src="public/index.js"></script>
+        
     </body>
 </html>

@@ -8,6 +8,8 @@ const ejs = require('ejs')
 const app = express()
 const { MongoClient } = require('mongodb');
 const { get } = require('mongodb/lib/utils')
+const dotenv = require('dotenv')
+dotenv.config()
 const uri = process.env.PASSWORD;
 let lastadded = 0
 let token
@@ -109,6 +111,7 @@ async function getAllData(user) {
 				reqs: rdata,
 				username: user
 			});
+			console.log("yey")
 		})
 }
 async function getAllData2(res) {
@@ -199,7 +202,7 @@ async function getAllData2(res) {
 			rn++
 		})
 		
-		res.render("main.html", {
+		res.redirect('/').render("main.html", {
 			posts: data,
 			reqs: rdata,
 			//lastreq: lastadded,
@@ -254,7 +257,8 @@ app.post('/gyat2.html', (req, res) => {
 		}
 	})
 })
-app.post('/delete.html', (req, res) => {
+app.post('/delete', (req, res) => {
+	console.log("deleting")
 	getToken(async(user)=>{
 		const db = client.db('boxsand')
 		const accounts = db.collection('accounts')
@@ -321,7 +325,14 @@ app.post("/gyat.html", async(req, res) => {
 app.post('/endsession.html', (req, res)=>{
 	res.send("Session ended.")
 })
-app.listen(3000, (err)=>{
+
+app.get('/login', (req, res)=>{
+	res.render("login.html")
+})
+app.get('/signup', (req, res)=>{
+	res.render("signup.html")
+})
+app.listen(process.env.PORT, (err)=>{
 	if (err) throw err
 	console.log("Connected!")
 })

@@ -1,11 +1,10 @@
-
+console.log("helpppppppppppppppppp")
 
 // Ensure loggedIn logic works correctly
 const loggedInElement = document.getElementById('loggedinas');
 const loggedIn = loggedInElement && loggedInElement.innerText !== "nobody";
 console.log('Logged in:', loggedIn);
 
-console.log(loggedIn)
 function textToHTML(text) {
     return text.replace(/(?:\r\n|\r|\n)/g, '<br>');
 }
@@ -16,9 +15,10 @@ document.getElementById('loggedinas2').innerText = document.getElementById('logg
 const signupButton = document.getElementById('signup-button');
 const loginButton = document.getElementById('login-button');
 
+
 if (signupButton) {
     signupButton.addEventListener('click', function() {
-        window.location.href = 'public/signup.html';
+        window.location.href = 'signup.html';
     });
 } else {
     console.error('Signup button not found');
@@ -26,7 +26,7 @@ if (signupButton) {
 
 if (loginButton) {
     loginButton.addEventListener('click', function() {
-        window.location.href = 'public/login.html';
+        window.location.href = 'login.html';
     });
 } else {
     console.error('Login button not found');
@@ -42,7 +42,6 @@ document.getElementById('post-content').addEventListener('change', function() {
     `
     <h3>${title}</h3>
     <p>By ${user}</p><br>
-    <p>By ${user}</p><br>
     <p>${textToHTML(text)}</p>
     ${
         file.length ? `<br><a download="${filename}.psave" href="data:text/base64,">Download ${filename}</a>`: ``
@@ -56,30 +55,23 @@ document.getElementById('file').addEventListener("change", function(){
     }
     fr.readAsText(document.getElementById("file").files[0])
 })
-
-// Control visibility of elements based on loggedIn
-document.getElementById('nreqbtn').style.display = !loggedIn ? "block" : "none";
-document.getElementById('postsection').style.display = !loggedIn ? "block" : "none";
-
-const posts = document.querySelectorAll(".post")
-posts.forEach(p => {
-    const postId = p.id.split("#")[1]
-    p.addEventListener("click", ()=>{
-        
+document.querySelectorAll('.post').forEach(post => {
+    const postId = post.id.split("#")[1]
+    post.onclick = ()=>{
         window.location.href = `/?post=${postId}`
-    })
-})
-window.onload =()=> {
-    const url = new URL(window.location.href);
-    const post = url.searchParams.get("post");
-    if (post !== null) {
-        document.body.innerHTML = document.getElementById("post#"+post).innerHTML+`<br>
-            <form action="/delete.html" method="POST">
-                <input style="display:none" name="postn" type="number" value="${post}">
-                <button type="submit">Delete</button>
-            </form>
-            
-        `
     }
+})
+const postn = window.location.search.split("?post=")[1]
+if (postn !== undefined) {
+    const post = document.getElementById(`post#${postn}`)
+    document.getElementById("psec").innerHTML = '<div class="wholepost">'+post.innerHTML+`
+        <form method="POST" action="/delete">
+            <input type="hidden" name="postn" value="${postn}">
+            <button type="submit">Delete</button>
+        </form>
+    `+"</div>"
 }
-console.log('main.js is loaded');
+if (!loggedIn){
+    document.getElementById("nreqbtn").style.display = "none"
+    document.getElementById("postsection").style.display = "none"
+}
