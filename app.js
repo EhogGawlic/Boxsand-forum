@@ -269,11 +269,11 @@ app.post('/delete', (req, res) => {
 	getToken(async(user)=>{
 		const db = client.db('boxsand')
 		const accounts = db.collection('accounts')
-		const account = await accounts.findOne({username: user})
+		const account = await accounts.findOne({username: user.username})
 		if (account){
 			const coll = db.collection('boxsandposts')
 			const posts = await coll.find({}).toArray()
-			if (posts[parseInt(req.body.postn)].user===user || account.status===5){
+			if (posts[parseInt(req.body.postn)].user===user.username || account.status===5){
 				const deleted = await coll.deleteOne({title: posts[parseInt(req.body.postn)].title})
 				res.render("public/delete.html", {
 					title: "Deleted!.",
@@ -297,6 +297,9 @@ app.post('/delete', (req, res) => {
 app.post('/', async(req,res)=>{
 	
 	getAllData2(res).catch(console.error)
+})
+app.get('/request', (req, res)=>{
+	res.sendFile(__dirname + '/public/newreq.html')
 })
 app.post('/req.html', (req, res) => {
 	const title = req.body.title
