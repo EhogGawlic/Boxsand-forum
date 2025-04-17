@@ -308,8 +308,37 @@ app.post('/req.html', (req, res) => {
 	getAllData2(res).catch(console.error)
 })
 //login
+app.use(function (req, res, next) {
+
+    // Website you wish to allow to connect
+    res.setHeader('Access-Control-Allow-Origin', '*');
+
+    // Request methods you wish to allow
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+
+    // Request headers you wish to allow
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+
+    // Pass to next layer of middleware
+    next();
+});
+app.get('/post:id', async (req, res)=>{
+	const db = client.db('boxsand')
+	const coll = db.collection('boxsandposts')
+	const posts = await coll.find({}).toArray()
+	const post = posts[parseFloat(req.params.id.toString().substring(1))]
+	res.json(post)
+})
 app.post("/gyat.html", async(req, res) => {
-	
+
+    // Website you wish to allow to connect
+    res.setHeader('Access-Control-Allow-Origin', '*');
+
+    // Request methods you wish to allow
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+
+    // Request headers you wish to allow
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
 	const db = client.db('boxsand');
 	const coll = db.collection('accounts')
 	const user = await coll.findOne({username: req.body.username})
@@ -369,6 +398,16 @@ app.get('/signup', (req, res)=>{
 app.get('/banuser', async (req, res)=>{
 	const file = await fs.readFile("./banuser.html")
 	res.send(file.toString())
+})
+app.get('/editpost:postn', (req, res)=>{
+	res.sendFile(__dirname+"/editpost.html")
+})
+app.get('/getdata:postid', async (req, res)=>{
+	const db = client.db('boxsand')
+	const coll = db.collection('boxsandposts')
+	const posts = await coll.find({}).toArray()
+	const post = posts[parseInt(req.params.postid)]
+	res.send(JSON.stringify(post))
 })
 const port = 3000//process.env.PORT||3000
 app.get('/rules', async(req, res)=>{

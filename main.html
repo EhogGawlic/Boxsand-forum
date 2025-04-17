@@ -56,7 +56,7 @@ button{
 }
 #posts{
     overflow-y: scroll;
-    height: 500px;
+    height: 1000px;
 }
         </style>
         <link rel="icon" href="https://boxsand.netlify.app/3d/3dball.jpg">
@@ -183,6 +183,10 @@ button{
                     <form method="POST" action="/delete">
                         <input type="hidden" name="postn" value="${postn}">
                         <button type="submit">Delete</button>
+                    </form>
+                    <form method="GET" action="/editpost:postid=${postn}">
+                        <input type="hidden" name="postn" value="${postn}">
+                        <button type="submit">Edit</button>
                     </form>
                 `+"</div>"
             }

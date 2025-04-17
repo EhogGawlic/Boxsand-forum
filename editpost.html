@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Edit post</title>
+        <link rel="stylesheet" href="public/style.css">
+    </head>
+    <body>
+        <form action="edited" method="POST">
+            <label for="name">Title</label><br>
+            <input name="name" type="text" id="name" placeholder="Title" required><br>
+            <label for="file">File (optional)</label><br>
+            <input name="file" type="file" id="file"><br>
+            <label for="filename">File name (optional)</label><br>
+            <input name="filename" type="text" value="save" id="filename"><br>
+            <label for="post-content">Content</label><br>
+            <textarea id="post-content" name="data" rows="4" cols="50" placeholder="Write your post here..."></textarea><br>
+            
+            <label for="post-preview">Preview</label><br>
+            <div id="post-preview" class="section2">Your post will appear here...</div><br><!--
+            <label for="options">Options</label><br>
+            <div id="options">
+                <button class="pbtn">Upload</button>
+                <button class="pbtn">Header</button>
+                <button class="pbtn">Bold</button>
+                <button class="pbtn">Italic</button>
+                <button class="pbtn">Underline</button>
+                <button class="pbtn">List</button>
+            </div><br>
+            -->
+            <button type="submit" id="post-button">OK</button>
+            <label for="filehidden" style="display:none"></label>
+            <input name="fileh" type="text" id="filehidden" style="display:none">
+        </form>
+        <script>
+            const form = document.querySelector('form');
+            async function main(){
+                const post = await fetch('/getdata:postid='+window.location.search.split('=')[1])
+                console.log(post)
+                
+                document.getElementById('title').value = data.title
+                document.getElementById("filename").value = data.filename
+                document.getElementById("post-content").value = data.data
+            }
+            main().catch(console.error)
+            document.getElementById('post-content').addEventListener('change', function() {
+            const text = this.value
+            const title = document.getElementById("name").value
+            const file = document.getElementById("file").value
+            const filename = document.getElementById("filename").textContent
+            const user = document.getElementById('loggedinas').innerText
+
+            document.getElementById('post-preview').innerHTML = 
+            `
+            <h3>${title}</h3>
+            <p>By ${user}</p><br>
+            <p>${textToHTML(text)}</p>
+            ${
+                file.length ? `<br><a download="${filename}.psave" href="data:text/base64,">Download ${filename}</a>`: ``
+            }`
+            });
+        </script>
+    </body>
+</html>
