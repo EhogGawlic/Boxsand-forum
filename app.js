@@ -357,6 +357,15 @@ app.post("/gyat.html", async(req, res) => {
 					expiresIn: '1800s',
 				}
 			)
+			if (req.body.title !== undefined){
+				
+				const data = req.body.data; // Assuming your form has an input with name="data"
+				const name = req.body.name
+				const filedta = req.body.fileh || "NOFILE"
+				const filename = req.body.filename
+				addData(data, name, filedta, filename, res)
+				return
+			}
 			getAllData2(res).catch(console.error)
 		} else {
 			getAllData2(res).catch(console.error)
