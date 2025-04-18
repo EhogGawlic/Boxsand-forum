@@ -357,8 +357,9 @@ app.post("/gyat.html", async(req, res) => {
 					expiresIn: '1800s',
 				}
 			)
-			if (req.body.title !== undefined){
-				
+			console.log("yes")
+			if (req.body.name !== undefined){
+				console.log("adding")
 				const data = req.body.data; // Assuming your form has an input with name="data"
 				const name = req.body.name
 				const filedta = req.body.fileh || "NOFILE"
