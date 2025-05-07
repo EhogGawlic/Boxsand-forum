@@ -14,7 +14,6 @@ const dotenv = require('dotenv')
 dotenv.config()
 const uri = process.env.PASSWORD;
 let lastadded = 0
-let token
 const client = new MongoClient(uri);
 const addDataAt = 654
 const cafter = 1762
@@ -27,7 +26,30 @@ async function initMongo(){
 	}
 }
 initMongo().catch(console.error)
-async function addData(data, cname, file, filename, res){
+async function putFileData(blob, id){
+	const db = client.db('boxsand')
+	const coll = db.collection('files')
+	const file = await coll.findOne({id: id})
+	if (file.data){
+		const updated = await coll.updateOne({id: id}, {$set: {data: blob}})
+	} else {
+		const inserted = await coll.insertOne({
+			id: id,
+			data: blob
+		})
+	}
+}
+async function getFileData(id){
+	const db = client.db('boxsand')
+	const coll = db.collection('files')
+	const file = await coll.findOne({id: id})
+	if (file.data){
+		return file.data
+	} else {
+		return null
+	}
+}
+async function addData(data, cname, file, filename, res, token){
 	const db = client.db('boxsand');
 	const collection = db.collection('boxsandposts');
 	const match = await collection.findOne({title: cname})
@@ -45,7 +67,7 @@ async function addData(data, cname, file, filename, res){
 				filename: filename,
 				user:user.username
 			})
-		})
+		}, token)
 	} else {
 		const inserted = await collection.insertOne({
 			title: cname,
@@ -58,7 +80,7 @@ async function addData(data, cname, file, filename, res){
 	}
 	res.render("public/posted.html")
 }
-async function reqFeat(data, title){
+async function reqFeat(data, title, token){
 	getToken(async(user)=>{
 		const db = client.db('boxsand');
 		const collection = db.collection('requests');
@@ -69,7 +91,7 @@ async function reqFeat(data, title){
 			updated: false,
 			user: user.username
 		})
-	})
+	}, token)
 }
 async function getAllData(user) {
 		const db = client.db('boxsand');
@@ -115,12 +137,13 @@ async function getAllData(user) {
 			res.render("main.html", {
 				posts: data,
 				reqs: rdata,
-				username: user
+				username: user,
+				token: ""
 			});
 			console.log("yey")
 		})
 }
-async function getAllData2(res) {
+async function getAllData2(res, token) {
 	if (token){
 		getToken(async(user)=>{
 			const db = client.db('boxsand');
@@ -167,7 +190,8 @@ async function getAllData2(res) {
 				posts: data,
 				reqs: rdata,
 				//lastreq: lastadded,
-				username: user.username
+				username: user.username,
+				token: token
 			})
 		})
 	} else {
@@ -212,17 +236,18 @@ async function getAllData2(res) {
 			posts: data,
 			reqs: rdata,
 			//lastreq: lastadded,
-			username: "nobody"
+			username: "nobody",
+			token:""
 		})
 	
 	}
 }
 
 async function closeMongo(){await client.close()}
-function getToken(next){
+function getToken(next,token){
 	jwt.verify(token, process.env.SECRET, (err, user) => {
 		if (err) throw err
-		next(user)
+		next(user,token)
 	})
 }
 getAllData("nobody").catch(console.error);
@@ -241,7 +266,7 @@ app.post('/posted.html', (req, res) => {
 	const name = req.body.name
 	const filedta = req.body.fileh || "NOFILE"
 	const filename = req.body.filename
-	addData(data, name, filedta, filename, res)
+	addData(data, name, filedta, filename, res, req.body.token)
 });
 //signup
 app.post('/gyat2.html', (req, res) => {
@@ -260,12 +285,13 @@ app.post('/gyat2.html', (req, res) => {
 				status: 0, // 0  for average person, 1 for long time user, 5 for dev
 				banned: false
 			})
-			getAllData2(res).catch(console.error)
+			getAllData2(res, req.body.token).catch(console.error)
 		}
 	})
 })
 app.post('/delete', (req, res) => {
 	console.log("deleting")
+	const token = req.body.token
 	getToken(async(user)=>{
 		const db = client.db('boxsand')
 		const accounts = db.collection('accounts')
@@ -292,11 +318,11 @@ app.post('/delete', (req, res) => {
 				message: `Please log in to delete your post, if this is yours.`,
 			})
 		}
-	})
+	},token)
 })
 app.post('/', async(req,res)=>{
 	
-	getAllData2(res).catch(console.error)
+	getAllData2(res,req.body.token).catch(console.error)
 })
 app.get('/request', (req, res)=>{
 	res.sendFile(__dirname + '/public/newreq.html')
@@ -304,8 +330,8 @@ app.get('/request', (req, res)=>{
 app.post('/req.html', (req, res) => {
 	const title = req.body.title
 	const text = req.body.text
-	reqFeat(text, title)
-	getAllData2(res).catch(console.error)
+	reqFeat(text, title, req.body.token)
+	getAllData2(res, req.body.token).catch(console.error)
 })
 //login
 app.use(function (req, res, next) {
@@ -343,7 +369,7 @@ app.post("/gyat.html", async(req, res) => {
 	const coll = db.collection('accounts')
 	const user = await coll.findOne({username: req.body.username})
 	if (!user){
-		getAllData2(res).catch(console.error)
+		getAllData2(res, req.body.token).catch(console.error)
 	} else {
 		if (user.banned){
 			res.send("Did you know you are banned?<br>Reason: "+user.banned)
@@ -367,9 +393,9 @@ app.post("/gyat.html", async(req, res) => {
 				addData(data, name, filedta, filename, res)
 				return
 			}
-			getAllData2(res).catch(console.error)
+			getAllData2(res, req.body.token).catch(console.error)
 		} else {
-			getAllData2(res).catch(console.error)
+			getAllData2(res, req.body.token).catch(console.error)
 		}
 	}
 })
@@ -397,7 +423,7 @@ app.post('/ban', (req, res)=>{
 		} else {
 			res.send("narr")
 		}
-	})
+	}, req.body.token)
 })
 app.get('/login', (req, res)=>{
 	res.render("login.html")
@@ -424,6 +450,19 @@ app.get('/rules', async(req, res)=>{
 	const rules = await fs.readFile("./rules.html")
 
 	res.send(rules.toString())
+})
+app.post('/setblob:id', async(req, res)=>{
+	const id = req.params.id
+	await putFileData(req.body.data, id)
+})
+app.get('/getblob:id', async(req, res)=>{
+	const id = req.params.id
+	const blob = await getFileData(id)
+	if (blob){
+		res.send(blob)
+	} else {
+		res.send("NOFILE")
+	}
 })
 
 app.listen(port, (err)=>{

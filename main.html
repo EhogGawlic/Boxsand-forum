@@ -80,11 +80,12 @@ button{
                 <%- reqs %>
             </div>
             <span id="loggedinas" style="display:none"><%- username %></span>
+            <span id="token" style="display:none"><%- token %></span>
         </div>
         <div class="section1" id="postsection">
             <h2>Post</h2>
             <p>Make sure to follow the <a href="/rules">rules</a></p>
-            <form id="post-form" action="/posted.html" method="POST">
+            <form id="post-form" action="/posted.html" method="POST" onsubmit="event.preventDefault();postForm(event)">
                 <label for="name">Title</label><br>
                 <input name="name" type="text" id="name" placeholder="Title" required><br>
                 <label for="file">File (optional)</label><br>
@@ -109,13 +110,30 @@ button{
                 <button type="submit" id="post-button">Send</button>
                 <label for="filehidden" style="display:none"></label>
                 <input name="fileh" type="text" id="filehidden" style="display:none">
+                
             </form>
             <form action="/endsession.html" method="POST"><button type="submit">End session</button></form>
         </div>
         <button id="nreqbtn">Request update</button>
         <script>console.log("helpppppppppppppppppp")
-
-            // Ensure loggedIn logic works correctly
+            function postForm(e){
+                const body = {
+                    name: document.getElementById("name").value,
+                    data: document.getElementById("post-content").value,
+                    file: document.getElementById("filehidden").value,
+                    filename: document.getElementById("filename").value,
+                    token: localStorage.getItem("token")
+                }
+                fetch("/posted.html", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(body)
+                })
+            }
+            localStorage.setItem("token", document.getElementById("token").innerText)
+            document.getElementById("token").innerText=""//safety
             const loggedInElement = document.getElementById('loggedinas');
             const loggedIn = loggedInElement && loggedInElement.innerText !== "nobody";
             console.log('Logged in:', loggedIn);
