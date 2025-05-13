@@ -4,61 +4,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Boxsand forum</title>
-        <style>
-            *{
-    font-family: 'Courier New', Courier, monospace;
-}
-button{
-    width: 100px;
-    height: 40px;
-}
-#options{
-    width:1000px;
-    height: 50px;
-    background-color: rgb(109, 117, 131);
-    border: 5px solid black;
-    border-radius: 10px;
-    margin: 10px;
-}
-#options button{
-    height: 20px;
-    margin: 15px;
-}
-.section1{
-    background-color: gray;
-    border: 5px solid black;
-    border-radius: 10px;
-}
-.section2{
-    background-color: lightgray;
-    border: 5px solid black;
-    border-radius: 10px;
-    margin: 10px;
-}
-.post{
-    background-color: white;
-    border: 5px solid black;
-    border-radius: 10px;
-    margin: 10px;
-    padding: 10px;
-    height: 200px;
-    overflow-y: scroll;
-}
-.wholepost{
-    background-color: white;
-    border: 5px solid black;
-    border-radius: 10px;
-    margin: 10px;
-    padding: 10px;
-}
-.post:hover{
-    background-color: lightblue;
-}
-#posts{
-    overflow-y: scroll;
-    height: 1000px;
-}
-        </style>
+        <link rel="stylesheet" href="public/style.css">
         <link rel="icon" href="https://boxsand.netlify.app/3d/3dball.jpg">
     </head>
     <body>
@@ -68,7 +14,8 @@ button{
             <p>Already have an account?</p><br>
             <button id="login-button">Log In</button><br>
             Signed in as <span id="loggedinas2">you r not logd in</span>
-            <form action="/" method="POST"><button type="submit">Refresh</button></form>
+            <form action="/" method="POST">
+                <input name="token" id="token2" style="display:none"><button type="submit" id="rbtn">Refresh</button></form>
         </div>
         <div class="section1" id="psec">
             <h2>POSTS</h2>
@@ -85,7 +32,7 @@ button{
         <div class="section1" id="postsection">
             <h2>Post</h2>
             <p>Make sure to follow the <a href="/rules">rules</a></p>
-            <form id="post-form" action="/posted.html" method="POST" onsubmit="event.preventDefault();postForm(event)">
+            <form id="post-form" action="/posted.html" method="POST" onsubmit="postForm(event)">
                 <label for="name">Title</label><br>
                 <input name="name" type="text" id="name" placeholder="Title" required><br>
                 <label for="file">File (optional)</label><br>
@@ -110,30 +57,20 @@ button{
                 <button type="submit" id="post-button">Send</button>
                 <label for="filehidden" style="display:none"></label>
                 <input name="fileh" type="text" id="filehidden" style="display:none">
-                
+                <input name="token" id="token3" style="display:none">
             </form>
             <form action="/endsession.html" method="POST"><button type="submit">End session</button></form>
         </div>
         <button id="nreqbtn">Request update</button>
         <script>console.log("helpppppppppppppppppp")
             function postForm(e){
-                const body = {
-                    name: document.getElementById("name").value,
-                    data: document.getElementById("post-content").value,
-                    file: document.getElementById("filehidden").value,
-                    filename: document.getElementById("filename").value,
-                    token: localStorage.getItem("token")
-                }
-                fetch("/posted.html", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(body)
-                })
+                document.getElementById("token3").value = localStorage.getItem("token")
+                
             }
-            localStorage.setItem("token", document.getElementById("token").innerText)
-            document.getElementById("token").innerText=""//safety
+            document.getElementById("token3").value = localStorage.getItem("token")
+            document.getElementById("token2").value = localStorage.getItem("token")
+            console.log(document.getElementById("token").innerText)
+            if (document.getElementById("token").innerText){localStorage.setItem("token", document.getElementById("token").innerText)}
             const loggedInElement = document.getElementById('loggedinas');
             const loggedIn = loggedInElement && loggedInElement.innerText !== "nobody";
             console.log('Logged in:', loggedIn);
@@ -190,25 +127,26 @@ button{
             })
             document.querySelectorAll('.post').forEach(post => {
                 const postId = post.id.split("#")[1]
-                post.onclick = ()=>{
-                    window.location.href = `/?post=${postId}`
+                post.onclick = async ()=>{
+                    console.log(postId)
+                    const req = await fetch("/gp:id="+postId)
+                    const txt = await req.text()
+                    document.getElementById("psec").innerHTML = txt+`
+                    <br>
+                    <button onclick="document.getElementById('rbtn').click()">Back</button>
+                    ${
+                        loggedInElement.innerHTML === 'ehogGawLIC' ?
+                        `<form action="/delete" method="POST">
+                            <button type="submit">Delete</button>
+                            <input name="token" value="${localStorage.getItem("token")}" style="display:none">
+                            <input name="postn" value="${postId}" style="display:none">
+                        </form>
+                        `:``
+                    }
+                    `
                 }
             })
-            const postn = window.location.search.split("?post=")[1]
-            if (postn !== undefined) {
-                const post = document.getElementById(`post#${postn}`)
-                document.getElementById("psec").innerHTML = '<div class="wholepost">'+post.innerHTML+`
-                    <form method="POST" action="/delete">
-                        <input type="hidden" name="postn" value="${postn}">
-                        <button type="submit">Delete</button>
-                    </form>
-                    <form method="GET" action="/editpost:postid=${postn}">
-                        <input type="hidden" name="postn" value="${postn}">
-                        <button type="submit">Edit</button>
-                    </form>
-                `+"</div>"
-            }
-            if (!loggedIn){
+            if (!loggedIn){//&& localStorage.getItem("token").length < 5){
                 document.getElementById("nreqbtn").style.display = "none"
                 document.getElementById("postsection").style.display = "none"
             }</script>

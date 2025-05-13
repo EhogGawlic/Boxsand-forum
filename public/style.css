@@ -33,8 +33,9 @@ button{
     border: 5px solid black;
     border-radius: 10px;
     margin: 10px;
+    margin-right: 100px;
     padding: 10px;
-    height: 200px;
+    height: 150px;
     overflow-y: scroll;
 }
 .wholepost{
@@ -49,5 +50,5 @@ button{
 }
 #posts{
     overflow-y: scroll;
-    height: 1000px;
+    height: 2000px;
 }

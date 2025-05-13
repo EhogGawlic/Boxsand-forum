@@ -6,6 +6,11 @@
         <title>Posted!</title>
     </head>
     <body>
-        <form action="/" method="POST"><button type="submit">Go back</button></form>
+        <form action="/" method="POST"><button type="submit">Go back</button>
+        <input name="token" style="display:none">
+        </form>
+        <script>
+            document.querySelector('input').value=localStorage.getItem("token")
+        </script>
     </body>
 </html>
